@@ -3,429 +3,277 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Taskify</title>
+<title>Taskify — AI Task Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0b; --surface: #111113; --surface2: #18181c;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+  --text: #e8e8ea; --text2: #7a7a88; --text3: #44444f;
+  --accent: #a78bfa; --accent-bg: rgba(167,139,250,0.08); --accent-border: rgba(167,139,250,0.2);
+  --green: #4ade80; --red: #f87171; --amber: #fbbf24;
+  --font-display: 'Oxanium', sans-serif; --font-mono: 'JetBrains Mono', monospace;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-display); background: var(--bg); color: var(--text); overflow-x: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: linear-gradient(rgba(167,139,250,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(167,139,250,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+* { position: relative; z-index: 1; }
 
-  :root {
-    --bg: #0e0e0f;
-    --surface: #161618;
-    --surface2: #1e1e21;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #e8e8ea;
-    --text2: #888892;
-    --text3: #55555f;
-    --accent: #a78bfa;
-    --accent-bg: rgba(167,139,250,0.1);
-    --accent-border: rgba(167,139,250,0.25);
-    --green: #4ade80;
-    --green-bg: rgba(74,222,128,0.08);
-    --red: #f87171;
-    --amber: #fbbf24;
-    --amber-bg: rgba(251,191,36,0.1);
-    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
-    --font-sans: 'Inter', system-ui, sans-serif;
-  }
+nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 48px; border-bottom: 0.5px solid var(--border);
+  background: rgba(10,10,11,0.9); backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-logo { font-family: var(--font-mono); font-size: 15px; font-weight: 500; color: var(--accent); text-decoration: none; letter-spacing: 0.04em; }
+.nav-links { display: flex; align-items: center; gap: 28px; }
+.nav-links a { font-family: var(--font-mono); font-size: 11px; color: var(--text2); text-decoration: none; letter-spacing: 0.06em; transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-login { padding: 7px 16px; border: 0.5px solid var(--border2); border-radius: 6px; color: var(--text2) !important; }
+.nav-login:hover { border-color: var(--accent-border) !important; color: var(--accent) !important; }
+.nav-cta { padding: 7px 18px; background: var(--accent-bg); border: 0.5px solid var(--accent-border); border-radius: 6px; color: var(--accent) !important; }
+.nav-cta:hover { background: rgba(167,139,250,0.15) !important; }
 
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+.hero { min-height: 92vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 24px 60px; }
+.hero-badge {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); border: 0.5px solid var(--accent-border); background: var(--accent-bg);
+  padding: 5px 16px; border-radius: 100px; margin-bottom: 40px;
+  display: inline-flex; align-items: center; gap: 8px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.1s forwards;
+}
+.bdot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.hero-title {
+  font-size: clamp(52px, 9vw, 110px); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em;
+  margin-bottom: 28px; opacity: 0; animation: fadeUp 0.7s ease 0.2s forwards;
+}
+.hero-title .l1 { display: block; color: var(--text); }
+.hero-title .l2 { display: block; color: var(--accent); }
+.hero-sub {
+  font-size: 17px; font-weight: 300; color: var(--text2); max-width: 480px; line-height: 1.7;
+  margin-bottom: 44px; opacity: 0; animation: fadeUp 0.7s ease 0.35s forwards;
+}
+.hero-btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; opacity: 0; animation: fadeUp 0.7s ease 0.5s forwards; }
+.btn-primary {
+  font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 13px 34px; background: var(--accent); border: none; border-radius: 8px; color: #0a0a0b;
+  text-decoration: none; transition: all 0.2s; cursor: pointer;
+}
+.btn-primary:hover { background: #b9a2ff; transform: translateY(-1px); }
+.btn-ghost {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+  padding: 13px 26px; background: transparent; border: 0.5px solid var(--border2);
+  border-radius: 8px; color: var(--text2); text-decoration: none; transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: var(--accent-border); color: var(--accent); }
 
-  html, body { height: 100%; }
+.preview-wrap {
+  margin-top: 72px; width: 100%; max-width: 860px; margin-left: auto; margin-right: auto;
+  padding: 0 24px; opacity: 0; animation: fadeUp 0.8s ease 0.65s forwards;
+}
+.pframe { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 14px; overflow: hidden; }
+.pbar { background: var(--surface2); padding: 11px 14px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 6px; }
+.dr { width: 9px; height: 9px; border-radius: 50%; background: #ff5f57; }
+.dy { width: 9px; height: 9px; border-radius: 50%; background: #ffbd2e; }
+.dg { width: 9px; height: 9px; border-radius: 50%; background: #28ca41; }
+.purl { font-family: var(--font-mono); font-size: 10px; color: var(--text3); margin-left: 10px; }
+.pinner { display: flex; height: 300px; }
+.psidebar { width: 180px; flex-shrink: 0; border-right: 0.5px solid var(--border); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.plogo { font-family: var(--font-mono); font-size: 12px; color: var(--accent); font-weight: 500; }
+.plabel { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+.pinput { background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 4px; padding: 5px 7px; font-family: var(--font-mono); font-size: 9px; color: var(--text3); }
+.ptasks { display: flex; flex-direction: column; gap: 3px; }
+.ptask { display: flex; align-items: center; gap: 5px; padding: 4px 6px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 4px; }
+.pcb { width: 9px; height: 9px; border: 0.5px solid var(--border2); border-radius: 2px; flex-shrink: 0; }
+.pcb.done { background: rgba(74,222,128,0.15); border-color: var(--green); }
+.ptt { font-family: var(--font-mono); font-size: 8px; color: var(--text2); flex: 1; }
+.ptt.done { text-decoration: line-through; color: var(--text3); }
+.pbadge { font-size: 7px; font-family: var(--font-mono); padding: 1px 4px; border-radius: 3px; }
+.bh { background: rgba(248,113,113,0.12); color: var(--red); }
+.bm { background: rgba(251,191,36,0.1); color: var(--amber); }
+.bl { background: var(--surface2); color: var(--text3); border: 0.5px solid var(--border); }
+.pmain { flex: 1; display: flex; flex-direction: column; }
+.pchat-hdr { padding: 10px 13px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 11px; font-weight: 600; color: var(--text); }
+.psdot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+.pmsgs { flex: 1; padding: 10px 13px; display: flex; flex-direction: column; gap: 7px; overflow: hidden; }
+.pmsg { display: flex; gap: 7px; }
+.pmicon { width: 18px; height: 18px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 7px; font-weight: 500; flex-shrink: 0; }
+.pmsg.user .pmicon { background: var(--accent-bg); color: var(--accent); border: 0.5px solid var(--accent-border); }
+.pmsg.agent .pmicon { background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border2); }
+.pmbody { font-size: 10px; line-height: 1.5; color: var(--text); padding: 5px 9px; border-radius: 5px; max-width: 82%; }
+.pmsg.user .pmbody { background: var(--accent-bg); border: 0.5px solid var(--accent-border); }
+.pmsg.agent .pmbody { background: var(--surface2); border: 0.5px solid var(--border); }
+.pinput-bar { padding: 9px 13px; border-top: 0.5px solid var(--border); display: flex; gap: 6px; }
+.pinput-field { flex: 1; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 5px; padding: 5px 8px; font-family: var(--font-mono); font-size: 9px; color: var(--text3); }
+.psend { padding: 5px 11px; background: var(--accent-bg); border: 0.5px solid var(--accent-border); border-radius: 5px; font-family: var(--font-mono); font-size: 9px; color: var(--accent); }
 
-  body {
-    font-family: var(--font-sans);
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
+.features { padding: 110px 48px; max-width: 1080px; margin: 0 auto; }
+.section-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.section-title { font-size: clamp(30px, 4vw, 48px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: var(--text); margin-bottom: 56px; max-width: 560px; }
+.fgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 0.5px solid var(--border); border-radius: 14px; overflow: hidden; }
+.fcard { background: var(--surface); padding: 32px 28px; transition: background 0.2s; }
+.fcard:hover { background: var(--surface2); }
+.ficon { font-family: var(--font-mono); font-size: 16px; color: var(--accent); margin-bottom: 16px; display: block; }
+.ftitle { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 9px; letter-spacing: -0.01em; }
+.fdesc { font-size: 13px; font-weight: 300; color: var(--text2); line-height: 1.7; }
 
-  #sidebar {
-    width: 280px;
-    flex-shrink: 0;
-    background: var(--surface);
-    border-right: 0.5px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+.how { padding: 60px 48px 110px; max-width: 1080px; margin: 0 auto; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 44px; margin-top: 56px; }
+.step { display: flex; flex-direction: column; gap: 14px; }
+.step-num { font-family: var(--font-mono); font-size: 10px; color: var(--accent); border: 0.5px solid var(--accent-border); background: var(--accent-bg); width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.06em; }
+.step-title { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+.step-desc { font-size: 13px; font-weight: 300; color: var(--text2); line-height: 1.7; }
 
-  .sidebar-header {
-    padding: 20px 18px 16px;
-    border-bottom: 0.5px solid var(--border);
-  }
+.cta { padding: 80px 48px 110px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.cta-title { font-size: clamp(34px, 5vw, 60px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; color: var(--text); margin-bottom: 18px; max-width: 640px; }
+.cta-sub { font-size: 15px; font-weight: 300; color: var(--text2); margin-bottom: 44px; }
+.cta-btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.cta-note { margin-top: 18px; font-family: var(--font-mono); font-size: 10px; color: var(--text3); letter-spacing: 0.06em; }
 
-  .logo {
-    font-family: var(--font-mono);
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--accent);
-    letter-spacing: 0.04em;
-  }
+footer { border-top: 0.5px solid var(--border); padding: 28px 48px; display: flex; align-items: center; justify-content: space-between; }
+.foot-logo { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 500; }
+.foot-txt { font-family: var(--font-mono); font-size: 10px; color: var(--text3); letter-spacing: 0.04em; }
 
-  .section-title {
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text3);
-    padding: 14px 18px 6px;
-  }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
 
-  #api-section { padding: 0 14px 14px; border-bottom: 0.5px solid var(--border); }
-  #api-key-input {
-    width: 100%;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    background: var(--surface2);
-    border: 0.5px solid var(--border2);
-    border-radius: 6px;
-    padding: 7px 10px;
-    color: var(--text);
-    outline: none;
-    letter-spacing: 0.03em;
-  }
-  #api-key-input:focus { border-color: var(--accent-border); }
-  #api-key-input::placeholder { color: var(--text3); }
-  .api-hint { font-size: 10px; color: var(--text3); margin-top: 6px; line-height: 1.6; }
-  .api-hint a { color: var(--accent); text-decoration: none; }
-  .api-hint a:hover { text-decoration: underline; }
-
-  #persona-section { padding: 0 14px 12px; border-bottom: 0.5px solid var(--border); }
-  #system-prompt {
-    width: 100%;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    background: var(--surface2);
-    border: 0.5px solid var(--border2);
-    border-radius: 6px;
-    padding: 8px 10px;
-    color: var(--text);
-    resize: vertical;
-    min-height: 110px;
-    line-height: 1.6;
-    outline: none;
-  }
-  #system-prompt:focus { border-color: var(--accent-border); }
-  .apply-btn {
-    margin-top: 7px;
-    width: 100%;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 6px 0;
-    background: transparent;
-    border: 0.5px solid var(--border2);
-    border-radius: 6px;
-    color: var(--text2);
-    cursor: pointer;
-    letter-spacing: 0.03em;
-    transition: all 0.15s;
-  }
-  .apply-btn:hover { border-color: var(--accent-border); color: var(--accent); }
-
-  #task-section { flex: 1; overflow-y: auto; padding: 0 14px 14px; }
-  #task-list { display: flex; flex-direction: column; gap: 4px; }
-  .no-tasks { font-size: 11px; color: var(--text3); font-family: var(--font-mono); padding: 4px 0; }
-  .task-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: 6px;
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    transition: opacity 0.2s;
-  }
-  .task-item.done { opacity: 0.4; }
-  .task-cb {
-    width: 14px; height: 14px;
-    border: 0.5px solid var(--border2);
-    border-radius: 3px;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px;
-    transition: all 0.15s;
-  }
-  .task-item.done .task-cb { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-  .task-text {
-    flex: 1;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text);
-    line-height: 1.4;
-  }
-  .task-item.done .task-text { text-decoration: line-through; color: var(--text3); }
-  .badge {
-    font-size: 9px;
-    font-family: var(--font-mono);
-    padding: 2px 6px;
-    border-radius: 4px;
-    letter-spacing: 0.04em;
-    flex-shrink: 0;
-  }
-  .p-high { background: rgba(248,113,113,0.12); color: var(--red); }
-  .p-mid { background: var(--amber-bg); color: var(--amber); }
-  .p-low { background: var(--surface2); color: var(--text3); border: 0.5px solid var(--border); }
-  .clear-btn {
-    margin-top: 10px;
-    width: 100%;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 5px 0;
-    background: transparent;
-    border: 0.5px solid var(--border);
-    border-radius: 6px;
-    color: var(--text3);
-    cursor: pointer;
-    letter-spacing: 0.03em;
-  }
-  .clear-btn:hover { color: var(--red); border-color: rgba(248,113,113,0.3); }
-
-  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  #chat-header {
-    padding: 16px 24px;
-    border-bottom: 0.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 6px var(--green);
-    flex-shrink: 0;
-  }
-  #agent-name { font-size: 14px; font-weight: 500; color: var(--text); }
-  #agent-model { font-family: var(--font-mono); font-size: 11px; color: var(--text3); margin-left: auto; }
-
-  #messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .msg { display: flex; gap: 12px; align-items: flex-start; }
-  .msg-icon {
-    width: 26px; height: 26px;
-    border-radius: 5px;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    margin-top: 2px;
-  }
-  .msg.user .msg-icon { background: var(--accent-bg); color: var(--accent); border: 0.5px solid var(--accent-border); }
-  .msg.agent .msg-icon { background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border2); }
-  .msg-body {
-    font-size: 13.5px;
-    line-height: 1.7;
-    color: var(--text);
-    padding: 9px 14px;
-    border-radius: 8px;
-    max-width: 85%;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .msg.user .msg-body { background: var(--accent-bg); border: 0.5px solid var(--accent-border); }
-  .msg.agent .msg-body { background: var(--surface2); border: 0.5px solid var(--border); }
-  .msg.agent.thinking .msg-body { color: var(--text3); font-style: italic; font-family: var(--font-mono); font-size: 12px; }
-
-  #input-area {
-    padding: 16px 24px;
-    border-top: 0.5px solid var(--border);
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-  }
-  #user-input {
-    flex: 1;
-    font-family: var(--font-sans);
-    font-size: 13px;
-    background: var(--surface2);
-    border: 0.5px solid var(--border2);
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: var(--text);
-    outline: none;
-    resize: none;
-    min-height: 42px;
-    max-height: 120px;
-    line-height: 1.5;
-  }
-  #user-input:focus { border-color: var(--accent-border); }
-  #user-input::placeholder { color: var(--text3); }
-  #send-btn {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 10px 18px;
-    background: var(--accent-bg);
-    border: 0.5px solid var(--accent-border);
-    border-radius: 8px;
-    color: var(--accent);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.15s;
-    height: 42px;
-  }
-  #send-btn:hover { background: rgba(167,139,250,0.18); }
-  #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-links { display: none; }
+  .features, .how { padding: 60px 20px; }
+  .fgrid, .steps { grid-template-columns: 1fr; }
+  .cta { padding: 60px 20px; }
+  footer { padding: 20px; flex-direction: column; gap: 8px; text-align: center; }
+  .psidebar { display: none; }
+}
 </style>
 </head>
 <body>
 
-<div id="sidebar">
-  <div class="sidebar-header">
-    <div class="logo">Taskify</div>
+<nav>
+  <a href="index.html" class="nav-logo">Taskify</a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="auth.html?mode=login" class="nav-login">Log in</a>
+    <a href="auth.html?mode=signup" class="nav-cta">Get started →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge"><span class="bdot"></span>Free · No subscription · Powered by AI</div>
+  <h1 class="hero-title">
+    <span class="l1">Your tasks,</span>
+    <span class="l2">automated.</span>
+  </h1>
+  <p class="hero-sub">Describe what you're working on. Taskify breaks it into a prioritized action plan — instantly.</p>
+  <div class="hero-btns">
+    <a href="auth.html?mode=signup" class="btn-primary">Get started free</a>
+    <a href="auth.html?mode=login" class="btn-ghost">Log in</a>
   </div>
 
-  <div class="section-title">API key</div>
-  <div id="api-section">
-    <input id="api-key-input" type="password" placeholder="gsk_..." spellcheck="false" />
-    <div class="api-hint">
-      Get a free API key at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a><br>
-      Your key won't be saved.
+  <div class="preview-wrap">
+    <div class="pframe">
+      <div class="pbar">
+        <div class="dr"></div><div class="dy"></div><div class="dg"></div>
+        <span class="purl">taskify.vercel.app/app</span>
+      </div>
+      <div class="pinner">
+        <div class="psidebar">
+          <div class="plogo">Taskify</div>
+          <div><div class="plabel">API key</div><div class="pinput">gsk_••••••••••••</div></div>
+          <div>
+            <div class="plabel">Task queue</div>
+            <div class="ptasks">
+              <div class="ptask"><div class="pcb done"></div><span class="ptt done">Research competitors</span><span class="pbadge bh">high</span></div>
+              <div class="ptask"><div class="pcb"></div><span class="ptt">Write landing copy</span><span class="pbadge bh">high</span></div>
+              <div class="ptask"><div class="pcb"></div><span class="ptt">Set up analytics</span><span class="pbadge bm">mid</span></div>
+              <div class="ptask"><div class="pcb"></div><span class="ptt">Schedule posts</span><span class="pbadge bl">low</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="pmain">
+          <div class="pchat-hdr"><div class="psdot"></div>Task Agent</div>
+          <div class="pmsgs">
+            <div class="pmsg user"><div class="pmicon">YOU</div><div class="pmbody">I need to launch a product next week, help me plan it</div></div>
+            <div class="pmsg agent"><div class="pmicon">AG</div><div class="pmbody">On it! I've broken your launch into 4 prioritized tasks. Start with research and copy — those are marked high.</div></div>
+          </div>
+          <div class="pinput-bar">
+            <div class="pinput-field">plan a project, add tasks...</div>
+            <div class="psend">run →</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+</section>
 
-  <div class="section-title">persona</div>
-  <div id="persona-section">
-    <textarea id="system-prompt">You are a precise task automation assistant. Help the user manage, plan, and execute tasks efficiently.
-
-When the user asks you to add or create tasks, respond with a JSON block tagged "tasks" like this:
-```tasks
-[{"text":"Task description","priority":"high","done":false}]
-```
-Priority must be "high", "mid", or "low".
-
-Always also write a short plain-language reply. Be concise and action-oriented.</textarea>
-    <button class="apply-btn" onclick="applyPersona()">↻ apply & reset</button>
+<section class="features" id="features">
+  <div class="reveal">
+    <div class="section-tag">// features</div>
+    <h2 class="section-title">Everything you need to get things done.</h2>
   </div>
-
-  <div class="section-title">task queue</div>
-  <div id="task-section">
-    <div id="task-list"><div class="no-tasks">no tasks yet</div></div>
-    <button class="clear-btn" onclick="clearTasks()">clear all tasks</button>
+  <div class="fgrid reveal">
+    <div class="fcard"><span class="ficon">[AI]</span><div class="ftitle">AI-powered planning</div><p class="fdesc">Describe any project in plain language. The agent turns it into a clear, actionable task list instantly.</p></div>
+    <div class="fcard"><span class="ficon">[//]</span><div class="ftitle">Auto-prioritization</div><p class="fdesc">Every task gets a priority — high, mid, or low — so you always know what to tackle next.</p></div>
+    <div class="fcard"><span class="ficon">[∞]</span><div class="ftitle">Custom persona</div><p class="fdesc">Edit the system prompt to shape the agent's style. Scrum master, life coach, or executor — your call.</p></div>
+    <div class="fcard"><span class="ficon">[◎]</span><div class="ftitle">Conversation memory</div><p class="fdesc">The agent remembers your full session so you can follow up, refine, or pivot without repeating yourself.</p></div>
+    <div class="fcard"><span class="ficon">[✓]</span><div class="ftitle">Live task tracker</div><p class="fdesc">Check off tasks as you go. Your queue updates in real time right in the sidebar.</p></div>
+    <div class="fcard"><span class="ficon">[0$]</span><div class="ftitle">Completely free</div><p class="fdesc">Runs on Groq's free API tier. No subscriptions, no credit card required. Just bring your key.</p></div>
   </div>
-</div>
+</section>
 
-<div id="main">
-  <div id="chat-header">
-    <div class="status-dot"></div>
-    <div id="agent-name">Task Agent</div>
-    <div id="agent-model">llama-3.3-70b</div>
+<section class="how" id="how">
+  <div class="reveal">
+    <div class="section-tag">// how it works</div>
+    <h2 class="section-title">Up and running in 60 seconds.</h2>
   </div>
+  <div class="steps">
+    <div class="step reveal"><div class="step-num">01</div><div class="step-title">Create an account</div><p class="step-desc">Sign up for free — no credit card needed. Your account is saved so you can come back anytime.</p></div>
+    <div class="step reveal"><div class="step-num">02</div><div class="step-title">Paste your Groq key</div><p class="step-desc">Get a free API key from console.groq.com and drop it in the sidebar. It stays in your browser.</p></div>
+    <div class="step reveal"><div class="step-num">03</div><div class="step-title">Start planning</div><p class="step-desc">Tell the agent what you're working on. Watch it build your task list and get to work.</p></div>
+  </div>
+</section>
 
-  <div id="messages">
-    <div class="msg agent">
-      <div class="msg-icon">AG</div>
-      <div class="msg-body">Agent online. Enter your Groq API key in the sidebar, then tell me what you need to automate or manage — I can help you plan tasks, break down projects, set priorities, and track progress.</div>
-    </div>
+<section class="cta">
+  <h2 class="cta-title reveal">Stop planning.<br>Start doing.</h2>
+  <p class="cta-sub reveal">Taskify turns your ideas into action in seconds.</p>
+  <div class="cta-btns reveal">
+    <a href="auth.html?mode=signup" class="btn-primary">Get started free</a>
+    <a href="auth.html?mode=login" class="btn-ghost">Log in</a>
   </div>
+  <div class="cta-note reveal">Free forever · No credit card required</div>
+</section>
 
-  <div id="input-area">
-    <textarea id="user-input" rows="1" placeholder="plan a project, add tasks, delegate work..."></textarea>
-    <button id="send-btn" onclick="sendMessage()">run →</button>
-  </div>
-</div>
+<footer>
+  <div class="foot-logo">Taskify</div>
+  <div class="foot-txt">Built with AI. Free to use.</div>
+</footer>
 
 <script>
-let history = [];
-let tasks = [];
-let systemPrompt = document.getElementById('system-prompt').value;
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-function applyPersona() {
-  systemPrompt = document.getElementById('system-prompt').value;
-  history = [];
-  addMessage('agent', 'Persona updated. Starting fresh.');
-}
-
-function clearTasks() {
-  tasks = [];
-  renderTasks();
-}
-
-function renderTasks() {
-  const list = document.getElementById('task-list');
-  if (!tasks.length) { list.innerHTML = '<div class="no-tasks">no tasks yet</div>'; return; }
-  list.innerHTML = tasks.map((t, i) => `
-    <div class="task-item${t.done ? ' done' : ''}">
-      <div class="task-cb" onclick="toggleTask(${i})">${t.done ? '✓' : ''}</div>
-      <span class="task-text">${escHtml(t.text)}</span>
-      <span class="badge p-${t.priority}">${t.priority}</span>
-    </div>`).join('');
-}
-
-function toggleTask(i) { tasks[i].done = !tasks[i].done; renderTasks(); }
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function addMessage(role, text, thinking) {
-  const msgs = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = `msg ${role}${thinking ? ' thinking' : ''}`;
-  div.innerHTML = `<div class="msg-icon">${role === 'user' ? 'YOU' : 'AG'}</div><div class="msg-body">${escHtml(text)}</div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  return div;
-}
-
-async function sendMessage() {
-  const input = document.getElementById('user-input');
-  const btn = document.getElementById('send-btn');
-  const apiKey = document.getElementById('api-key-input').value.trim();
-  const text = input.value.trim();
-  if (!text) return;
-  if (!apiKey) { alert('Please enter your Groq API key in the sidebar.'); return; }
-
-  input.value = '';
-  input.style.height = 'auto';
-  btn.disabled = true;
-  addMessage('user', text);
-  history.push({ role: 'user', content: text });
-  const thinking = addMessage('agent', 'processing...', true);
-
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey, messages: history, systemPrompt })
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-
-    const reply = data.choices[0].message.content;
-
-    const taskMatch = reply.match(/```tasks\s*([\s\S]*?)```/);
-    if (taskMatch) {
-      try { const t = JSON.parse(taskMatch[1]); tasks = [...tasks, ...t]; renderTasks(); } catch(e) {}
+// If already logged in, swap nav button to "Open app"
+if (localStorage.getItem('taskify_user')) {
+  document.querySelectorAll('a[href="auth.html?mode=signup"], a[href="auth.html?mode=login"]').forEach(a => {
+    if (a.classList.contains('btn-primary') || a.classList.contains('nav-cta')) {
+      a.textContent = 'Open app →';
+      a.href = 'app.html';
     }
-    const clean = reply.replace(/```tasks[\s\S]*?```/g, '').trim();
-    thinking.classList.remove('thinking');
-    thinking.querySelector('.msg-body').textContent = clean;
-    history.push({ role: 'assistant', content: reply });
-  } catch(e) {
-    thinking.classList.remove('thinking');
-    thinking.querySelector('.msg-body').textContent = 'Error: ' + e.message;
-  }
-  btn.disabled = false;
-  input.focus();
+    if (a.classList.contains('btn-ghost') || a.classList.contains('nav-login')) {
+      a.style.display = 'none';
+    }
+  });
 }
-
-const inp = document.getElementById('user-input');
-inp.addEventListener('input', () => { inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; });
-inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 </script>
 </body>
 </html>
