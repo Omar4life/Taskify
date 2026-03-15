@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Taskify</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0f;
+    --surface: #161618;
+    --surface2: #1e1e21;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8e8ea;
+    --text2: #888892;
+    --text3: #55555f;
+    --accent: #a78bfa;
+    --accent-bg: rgba(167,139,250,0.1);
+    --accent-border: rgba(167,139,250,0.25);
+    --green: #4ade80;
+    --green-bg: rgba(74,222,128,0.08);
+    --red: #f87171;
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.1);
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+    --font-sans: 'Inter', system-ui, sans-serif;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 20px 18px 16px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  .section-title {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 14px 18px 6px;
+  }
+
+  #api-section { padding: 0 14px 14px; border-bottom: 0.5px solid var(--border); }
+  #api-key-input {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: var(--text);
+    outline: none;
+    letter-spacing: 0.03em;
+  }
+  #api-key-input:focus { border-color: var(--accent-border); }
+  #api-key-input::placeholder { color: var(--text3); }
+  .api-hint { font-size: 10px; color: var(--text3); margin-top: 6px; line-height: 1.6; }
+  .api-hint a { color: var(--accent); text-decoration: none; }
+  .api-hint a:hover { text-decoration: underline; }
+
+  #persona-section { padding: 0 14px 12px; border-bottom: 0.5px solid var(--border); }
+  #system-prompt {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text);
+    resize: vertical;
+    min-height: 110px;
+    line-height: 1.6;
+    outline: none;
+  }
+  #system-prompt:focus { border-color: var(--accent-border); }
+  .apply-btn {
+    margin-top: 7px;
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 0;
+    background: transparent;
+    border: 0.5px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text2);
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: all 0.15s;
+  }
+  .apply-btn:hover { border-color: var(--accent-border); color: var(--accent); }
+
+  #task-section { flex: 1; overflow-y: auto; padding: 0 14px 14px; }
+  #task-list { display: flex; flex-direction: column; gap: 4px; }
+  .no-tasks { font-size: 11px; color: var(--text3); font-family: var(--font-mono); padding: 4px 0; }
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    transition: opacity 0.2s;
+  }
+  .task-item.done { opacity: 0.4; }
+  .task-cb {
+    width: 14px; height: 14px;
+    border: 0.5px solid var(--border2);
+    border-radius: 3px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    transition: all 0.15s;
+  }
+  .task-item.done .task-cb { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .task-text {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .task-item.done .task-text { text-decoration: line-through; color: var(--text3); }
+  .badge {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .p-high { background: rgba(248,113,113,0.12); color: var(--red); }
+  .p-mid { background: var(--amber-bg); color: var(--amber); }
+  .p-low { background: var(--surface2); color: var(--text3); border: 0.5px solid var(--border); }
+  .clear-btn {
+    margin-top: 10px;
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 5px 0;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--text3);
+    cursor: pointer;
+    letter-spacing: 0.03em;
+  }
+  .clear-btn:hover { color: var(--red); border-color: rgba(248,113,113,0.3); }
+
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #chat-header {
+    padding: 16px 24px;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    flex-shrink: 0;
+  }
+  #agent-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  #agent-model { font-family: var(--font-mono); font-size: 11px; color: var(--text3); margin-left: auto; }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .msg { display: flex; gap: 12px; align-items: flex-start; }
+  .msg-icon {
+    width: 26px; height: 26px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .msg.user .msg-icon { background: var(--accent-bg); color: var(--accent); border: 0.5px solid var(--accent-border); }
+  .msg.agent .msg-icon { background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border2); }
+  .msg-body {
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--text);
+    padding: 9px 14px;
+    border-radius: 8px;
+    max-width: 85%;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.user .msg-body { background: var(--accent-bg); border: 0.5px solid var(--accent-border); }
+  .msg.agent .msg-body { background: var(--surface2); border: 0.5px solid var(--border); }
+  .msg.agent.thinking .msg-body { color: var(--text3); font-style: italic; font-family: var(--font-mono); font-size: 12px; }
+
+  #input-area {
+    padding: 16px 24px;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  #user-input {
+    flex: 1;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    outline: none;
+    resize: none;
+    min-height: 42px;
+    max-height: 120px;
+    line-height: 1.5;
+  }
+  #user-input:focus { border-color: var(--accent-border); }
+  #user-input::placeholder { color: var(--text3); }
+  #send-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 10px 18px;
+    background: var(--accent-bg);
+    border: 0.5px solid var(--accent-border);
+    border-radius: 8px;
+    color: var(--accent);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    height: 42px;
+  }
+  #send-btn:hover { background: rgba(167,139,250,0.18); }
+  #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">Taskify</div>
+  </div>
+
+  <div class="section-title">API key</div>
+  <div id="api-section">
+    <input id="api-key-input" type="password" placeholder="gsk_..." spellcheck="false" />
+    <div class="api-hint">
+      Get a free API key at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a><br>
+      Your key won't be saved.
+    </div>
+  </div>
+
+  <div class="section-title">persona</div>
+  <div id="persona-section">
+    <textarea id="system-prompt">You are a precise task automation assistant. Help the user manage, plan, and execute tasks efficiently.
+
+When the user asks you to add or create tasks, respond with a JSON block tagged "tasks" like this:
+```tasks
+[{"text":"Task description","priority":"high","done":false}]
+```
+Priority must be "high", "mid", or "low".
+
+Always also write a short plain-language reply. Be concise and action-oriented.</textarea>
+    <button class="apply-btn" onclick="applyPersona()">↻ apply & reset</button>
+  </div>
+
+  <div class="section-title">task queue</div>
+  <div id="task-section">
+    <div id="task-list"><div class="no-tasks">no tasks yet</div></div>
+    <button class="clear-btn" onclick="clearTasks()">clear all tasks</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="chat-header">
+    <div class="status-dot"></div>
+    <div id="agent-name">Task Agent</div>
+    <div id="agent-model">llama-3.3-70b</div>
+  </div>
+
+  <div id="messages">
+    <div class="msg agent">
+      <div class="msg-icon">AG</div>
+      <div class="msg-body">Agent online. Enter your Groq API key in the sidebar, then tell me what you need to automate or manage — I can help you plan tasks, break down projects, set priorities, and track progress.</div>
+    </div>
+  </div>
+
+  <div id="input-area">
+    <textarea id="user-input" rows="1" placeholder="plan a project, add tasks, delegate work..."></textarea>
+    <button id="send-btn" onclick="sendMessage()">run →</button>
+  </div>
+</div>
+
+<script>
+let history = [];
+let tasks = [];
+let systemPrompt = document.getElementById('system-prompt').value;
+
+function applyPersona() {
+  systemPrompt = document.getElementById('system-prompt').value;
+  history = [];
+  addMessage('agent', 'Persona updated. Starting fresh.');
+}
+
+function clearTasks() {
+  tasks = [];
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = document.getElementById('task-list');
+  if (!tasks.length) { list.innerHTML = '<div class="no-tasks">no tasks yet</div>'; return; }
+  list.innerHTML = tasks.map((t, i) => `
+    <div class="task-item${t.done ? ' done' : ''}">
+      <div class="task-cb" onclick="toggleTask(${i})">${t.done ? '✓' : ''}</div>
+      <span class="task-text">${escHtml(t.text)}</span>
+      <span class="badge p-${t.priority}">${t.priority}</span>
+    </div>`).join('');
+}
+
+function toggleTask(i) { tasks[i].done = !tasks[i].done; renderTasks(); }
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function addMessage(role, text, thinking) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}${thinking ? ' thinking' : ''}`;
+  div.innerHTML = `<div class="msg-icon">${role === 'user' ? 'YOU' : 'AG'}</div><div class="msg-body">${escHtml(text)}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const btn = document.getElementById('send-btn');
+  const apiKey = document.getElementById('api-key-input').value.trim();
+  const text = input.value.trim();
+  if (!text) return;
+  if (!apiKey) { alert('Please enter your Groq API key in the sidebar.'); return; }
+
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+  addMessage('user', text);
+  history.push({ role: 'user', content: text });
+  const thinking = addMessage('agent', 'processing...', true);
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey, messages: history, systemPrompt })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    const reply = data.choices[0].message.content;
+
+    const taskMatch = reply.match(/```tasks\s*([\s\S]*?)```/);
+    if (taskMatch) {
+      try { const t = JSON.parse(taskMatch[1]); tasks = [...tasks, ...t]; renderTasks(); } catch(e) {}
+    }
+    const clean = reply.replace(/```tasks[\s\S]*?```/g, '').trim();
+    thinking.classList.remove('thinking');
+    thinking.querySelector('.msg-body').textContent = clean;
+    history.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    thinking.classList.remove('thinking');
+    thinking.querySelector('.msg-body').textContent = 'Error: ' + e.message;
+  }
+  btn.disabled = false;
+  input.focus();
+}
+
+const inp = document.getElementById('user-input');
+inp.addEventListener('input', () => { inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; });
+inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+</script>
+</body>
+</html>
